@@ -1,5 +1,15 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+const GENERATE_ACESSTOKEN = (user) => {
+    return jwt.sign({
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        password: user.password
+    }, process.env.ACESS_KEY, { expiresIn: "1h" })
+}
 
 const register = async (req, res) => {
     try {
@@ -28,49 +38,62 @@ const register = async (req, res) => {
 
         return res.status(201).json({
             message: "User created successfully",
-            data: newUser.username,email,
+            data: newUser.username, email,
         });
     } catch (error) {
         console.error("Register error:", error); // add this line
 
         return res.status(500).json({
             message: "Internal server error",
-            error: error.message,           // optional: send error message
+            error: error.message,
         });
     }
 };
-const login = async (req,res )=>{
-try{
-    const {email, password} = req.body
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body
 
-    if(!email|| !password){
-        return res.status(400).json({message:"all field are require"})
+        if (!email || !password) {
+            return res.status(400).json({ message: "all field are require" })
 
-    }
+        }
 
-    const existuser = await User.findOne({email});
-    
-    if(!existuser){
-        return res.json({
-            message: "user not found"
+        const existuser = await User.findOne({ email });
+
+        if (!existuser) {
+            return res.json({
+                message: "user not found"
+            })
+        }
+
+        const passwordCheck = await bcrypt.compare(password, existuser.password)
+
+        if (!passwordCheck) {
+            return res.json({ message: "incorrect password" })
+        }
+
+        const accessToken = GENERATE_ACESSTOKEN(existuser)
+
+        res.cookie("acessToken", accessToken, {
+            httpOnly: true,
+            secure: true,
+        }).json({
+            message: "login sucessfully",
+            accessToken
         })
     }
-
-    const passwordCheck = await bcrypt.compare(password, existuser.password)
-
-    if(!passwordCheck){
-    return    res.json({message:"incorrect password"})
+    catch (error) {
+        res.json({
+            message: "internal server error."
+        })
+        console.log("internal server error")
     }
 
-    res.json({
-        message: "login sucessfully"
-    })
-}
-catch(error){
-    console.log("internal server error")
-}
 
 
 }
+const authcheck = async (req, res) => {
 
-export {register,login}
+    res.send("this is authcheck ")
+}
+export { register, login, authcheck }
