@@ -5,5 +5,4 @@ const itemRoute = express.Router()
 
 itemRoute.post('/addItem', addItems)
 itemRoute.get('/displayItem', displayItem)
-
 export default itemRoute;

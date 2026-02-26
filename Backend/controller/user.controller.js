@@ -84,9 +84,9 @@ const login = async (req, res) => {
     }
     catch (error) {
         res.json({
-            message: "internal server error."
+            message: "internal server error in login controller."
         })
-        console.log("internal server error")
+        console.log("internal server error in login controller", error)
     }
 
 
@@ -96,4 +96,130 @@ const authcheck = async (req, res) => {
 
     res.send("this is authcheck ")
 }
-export { register, login, authcheck }
+
+const logout = async (req, res) => {
+
+    try {
+        return res.status(200).clearCookie("acessToken", {
+            httpOnly: true,
+            secure: true,
+        })
+
+            .json({
+                message: "user logout sucessful."
+            })
+
+    }
+    catch (error) {
+
+        res.json({
+            message: "internal server error in logout",
+            error: error
+
+        })
+        console.log("internal server error in logout.")
+    }
+}
+
+const getdata = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User context not found. Make sure verifyUser middleware is used."
+            });
+        }
+
+        return res.status(200).json({
+            message: "user details",
+            data: user
+        });
+    } catch (error) {
+        console.error("getdata error:", error);
+        return res.status(500).json({
+            message: "internal server error.",
+            error: error.message,
+        });
+    }
+}
+
+
+const getAllUser =  async (req, res)=>{
+
+  try {
+      const user = await User.find().select("-password");
+      if(!user){
+           console.log("unable to find user.")
+           return res.json({
+              message: "unable to find user"
+           })
+      }
+  
+      res.status(200)
+      .json({
+          message:"user find sucessfully",
+          totalUser: user.length,
+          data: user,
+      })
+  } catch (error) {
+    res.json({message:"error fatching all User.",
+         error:error})
+  }
+    
+}
+
+const getUserById =     async (req, res) => {
+
+        try {
+
+            const getid = req.params.id
+            const user = await User.findById(getid).select("-password");
+            if (!user) {
+                console.log("unable to find user.")
+                return res.json({
+                    message: "unable to find user"
+                })
+            }
+
+            res.status(200)
+                .json({
+                    message: "user find sucessfully",
+                    totalUser: user.length,
+                    data: user,
+                })
+        } catch (error) {
+            res.json({
+                message: "error fatching  User by id.",
+                error: error
+            })
+        }
+
+      }
+const getUserByemail = async( req, res)=>{
+
+ try{
+     const { email } = req.params;
+
+     const user = await User.findOne({ email }).select("-password");
+     if (!user) {
+         return res.json({
+             message: `user not found with ${email} email`
+         })
+     }
+
+     res.json({
+         message: "user found sucessfully",
+         data: user
+     })
+
+ }
+ catch(error){
+    res.json({
+        message:"internal server error in getuserBy email",
+        data: error.message
+    })
+ }
+
+}
+export { register, login, authcheck, logout, getdata, getAllUser, getUserById, getUserByemail }

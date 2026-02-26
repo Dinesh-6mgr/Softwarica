@@ -42,13 +42,6 @@ const displayItem = async (req, res) => {
                 data: item
             })
         }
-        if(!name){
-            const item = await items.find();
-            return res.json({
-                message: "Item display sucessfully",
-                data: item
-            })
-        }
       
     }
     catch (error) {

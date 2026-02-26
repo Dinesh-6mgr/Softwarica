@@ -26,7 +26,7 @@ export const verifyUser = async (req, res, next) => {
 
     }
     catch (error) {
-        console.log("internal server error", error)
+        console.log("internal server error in verifyUser middleware", error)
     }
 
 }
